@@ -6,21 +6,14 @@ import Question from '../models/questions.js';
 const router = express.Router();
 
 
-router.get('/questionfetch', async (req, res) => {
+router.get('/random', async (req, res) => {
   try {
-
-    // Generate a random number between 0 and 49 (assuming there are at least 50 questions)
-    const random = Math.floor(Math.random() * 50);
-    // Fetch a random question from the database
-    const question = await Question.findOne().skip(random).exec();
-
-    // If no question is found, return a 404 error
-    if (!question) {
-      return res.status(404).json({ message: 'No questions found' });
-    }
-    // Return the question as a JSON response
-    res.status(200).json(question);
-    
+    let count = parseInt(req.query.count) || 10;
+    const total = await Question.countDocuments();
+    const random = Math.max(0, Math.floor(Math.random() * (total - count + 1)));
+    const questions = await Question.find().skip(random).limit(count);
+    if (!questions.length) return res.status(404).json({ message: 'No questions found' });
+    res.status(200).json(questions);
   } catch (error) {
     console.error('Error fetching questions:', error);
     res.status(500).json({ message: 'Internal server error' });
