@@ -2,8 +2,13 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import authRoutes from './routes/auth.js';
+import questionRoutes from './routes/questions.js';
+import quizzesRoutes from './routes/quizzes.js';
+
 
 dotenv.config();
+
 
 const app = express();
 
@@ -12,6 +17,13 @@ app.use(cors());
 
 // express.json() middleware to parse JSON bodies
 app.use(express.json());
+
+app.use('/api/auth', authRoutes);
+
+app.use('/api/questions', questionRoutes);
+
+app.use('/api/quizzes', quizzesRoutes);
+
 
 const PORT = process.env.PORT;
 
