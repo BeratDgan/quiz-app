@@ -204,8 +204,8 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 
 Created with ❤️ by **Berat Doğan**
 
-- GitHub: [@yourusername](https://github.com/BeratDgan)
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/beratdogan-)
+- GitHub: [@BeratDgan](https://github.com/BeratDgan)
+- LinkedIn: [Berat Doğan](https://linkedin.com/in/beratdogan-)
 
 
 ⭐ **Star this repository if you found it helpful!** ⭐
