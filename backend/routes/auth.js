@@ -2,6 +2,7 @@ import express from "express";
 import User from "../models/Users.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import passport from "passport";
 
 //register
 const router = express.Router();
@@ -73,8 +74,127 @@ router.post("/login", async (req, res) => {
 }
 );
 
+// Google OAuth routes
+router.get('/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+router.get('/google/callback',
+  passport.authenticate('google', { session: false }),
+  async (req, res) => {
+    try {      // Generate JWT token for the user
+      const token = jwt.sign(
+        { 
+          userId: req.user._id, 
+          email: req.user.email,
+          username: req.user.username 
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
+        // Redirect to frontend with token
+      res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}&user=${encodeURIComponent(JSON.stringify({
+        email: req.user.email,
+        username: req.user.username,
+        id: req.user._id,
+        avatar: req.user.avatar
+      }))}`);
+    } catch (error) {
+      res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
+    }
+  }
+);
+
+// Get user profile with detailed stats
+router.get('/profile', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select('-password');
+    
+    // Get recent quiz results for this user
+    const Quiz = await import('../models/Quizzes.js').then(module => module.default);
+    const recentQuizzes = await Quiz.find({ userId: req.user.userId })
+      .sort({ completedAt: -1 })
+      .limit(10)
+      .select('score timeSpent completedAt');
+
+    const profileData = {
+      ...user.toObject(),
+      recentQuizzes,
+      totalScore: user.totalScore || 0,
+      quizzesCompleted: user.quizzesCompleted || 0,
+      bestScore: user.bestScore || 0
+    };
+
+    res.json(profileData);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching profile", error: error.message });
+  }
+});
+
+// Get leaderboard with optional user ranking
+router.get('/leaderboard', async (req, res) => {
+  try {
+    // Get all users sorted by total score
+    const allUsers = await User.find()
+      .select('username totalScore quizzesCompleted createdAt')
+      .sort({ totalScore: -1, createdAt: 1 });
+
+    let userRank = null;
+    
+    // Check if user is authenticated and get their rank
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userIndex = allUsers.findIndex(user => user._id.toString() === decoded.userId);
+        if (userIndex !== -1) {
+          userRank = {
+            rank: userIndex + 1,
+            totalScore: allUsers[userIndex].totalScore || 0,
+            username: allUsers[userIndex].username
+          };
+        }
+      } catch (jwtError) {
+        // Token is invalid, but we still show leaderboard without user rank
+      }
+    }
+
+    // Return top 50 users for leaderboard
+    const leaderboard = allUsers.slice(0, 50);
+
+    res.json({ 
+      leaderboard,
+      userRank,
+      totalUsers: allUsers.length
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching leaderboard", error: error.message });
+  }
+});
+
+// Middleware to verify JWT token
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Access token required' });
+  }
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Invalid token' });
+    }
+    req.user = user;
+    next();
+  });
+}
+
+
+
 // exporting the router that contains register and login routes to be used in app.js
 export default router;
 
-    
+
 

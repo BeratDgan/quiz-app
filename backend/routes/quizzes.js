@@ -1,6 +1,7 @@
 import express from 'express';
 import Quiz from '../models/Quizzes.js';
 import Question from '../models/questions.js';
+import User from '../models/Users.js';
 
 // Create a new router instance
 const router = express.Router();
@@ -9,6 +10,7 @@ const router = express.Router();
 
 router.get('/quizfetch/:quizId', async (req, res) => {
     try {
+        console.log('Quiz fetch request received for ID:', req.params.quizId);
         const { quizId } = req.params;
         const quiz = await Quiz.findById(quizId).populate('questions');
         if (!quiz) {
@@ -24,6 +26,7 @@ router.get('/quizfetch/:quizId', async (req, res) => {
 
 router.post('/start', async (req, res) => {
   try {
+    console.log('Quiz start request received:', req.body);
     const { createdBy } = req.body;
     const count = 10;
     const total = await Question.countDocuments();
@@ -58,14 +61,27 @@ router.patch('/:quizId/answer', async (req, res) => {
     const n = 100 * grade;
     const k = 0.2;
     const e = 2.71828;
-    const score = n * Math.pow(e, -k * time);
-
-    // add to answers array
+    const score = n * Math.pow(e, -k * time);    // add to answers array
     quiz.answers.push({ questionId, userAnswer, grade, time, score });
     // update totals
     quiz.totalScore += score;
     if (grade === 1) quiz.totalCorrect += 1;
     else quiz.totalWrong += 1;
+    
+    // Check if quiz is completed
+    const isQuizCompleted = quiz.answers.length === quiz.questions.length;
+    
+    if (isQuizCompleted) {
+      // Update user statistics
+      await User.findByIdAndUpdate(quiz.createdBy, {
+        $inc: { 
+          totalScore: quiz.totalScore,
+          quizzesCompleted: 1
+        },
+        $max: { bestScore: quiz.totalScore }
+      });
+    }
+    
     await quiz.save();
 
     res.status(200).json({ grade, score, totalScore: quiz.totalScore, totalCorrect: quiz.totalCorrect, totalWrong: quiz.totalWrong });

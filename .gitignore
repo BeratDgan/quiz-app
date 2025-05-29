@@ -1,4 +1,114 @@
+# === Backend ignores ===
 backend/node_modules/
+backend/.env
+backend/.env.*
+backend/dist/
+backend/build/
+backend/logs/
+backend/*.log
+backend/npm-debug.log*
+backend/yarn-debug.log*
+backend/pnpm-debug.log*
+backend/uploads/
+backend/temp/
+backend/sessions/
+backend/.nyc_output
+backend/coverage/
+
+# === Frontend ignores ===
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/dist-ssr/
+frontend/.env
+frontend/.env.*
+frontend/coverage/
+frontend/logs/
+frontend/*.log
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/pnpm-debug.log*
+frontend/lerna-debug.log*
+frontend/.vscode/
+frontend/.idea/
+frontend/.DS_Store
+frontend/Thumbs.db
+frontend/.vite/
+frontend/.next/
+frontend/.nuxt/
+frontend/.cache/
+frontend/.temp/
+
+# Ignore frontend/README.md
+frontend/README.md
+
+# === General ignores (for both or root) ===
+*.log
+logs/
 .env
+.DS_Store
+Thumbs.db
+
+# === Operating System Files ===
+# Windows
+*.tmp
+*.temp
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# === IDE and Editor Files ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+*.sublime-*
+
+# === Temporary and Cache Files ===
+*.tmp
+*.temp
+*.cache
+.npm/
+.yarn-integrity
+.pnp.*
+yarn-error.log*
+
+# === Environment and Config Files ===
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# === Database Files ===
+*.db
+*.sqlite
+*.sqlite3
+
+# === Backup Files ===
+*.bak
+*.backup
+*.old
+*_backup.*
+*_old.*
+
+# === Runtime and Process Files ===
+*.pid
+*.seed
+*.pid.lock
+
+# === Dependencies (root level) ===
+node_modules/
+jspm_packages/
+
+# === Build outputs (root level) ===
 dist/
 build/
+out/
+
+# === Test Coverage ===
+coverage/
+*.lcov
+.nyc_output
